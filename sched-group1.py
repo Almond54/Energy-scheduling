@@ -555,6 +555,39 @@ def compareTimeEfficency(solution, searchFunction1):
     plt.legend()
     plt.show()
 
+def graph_blocked_solutions_against_random(solution):
+    """
+    Graphs the number of random solutions we need to generate until we get a solution better than the blocked start.
+    """
+    tempSolution = copy.deepcopy(solution)
+    blocked_start = tempSolution.getBlockedOnOff()
+    blocked_cost = tempSolution.cost
+    iterations = 0
+    tempSolution.getShuffledOnOff()
+    random_cost_list = [tempSolution.cost]
+    best_cost = tempSolution.cost
+    while tempSolution.cost > solution.cost:
+        tempSolution.getShuffledOnOff()
+        if tempSolution.cost < best_cost:
+            best_cost = tempSolution.cost
+            random_cost_list.append(tempSolution.cost)
+        else:
+            random_cost_list.append(min(random_cost_list))
+        iterations += 1
+        if iterations >= 10000:
+            break
+    blocked_list = [blocked_cost for i in range(iterations)]
+    plt.subplots(figsize = (10, 7))
+    plt.title("Comparing blocked solution costs against randomly generated solution costs")
+    plt.xlabel("Iterations until Random is better than blocked")
+    plt.ylabel("Cost of Solutions")
+    plt.plot(blocked_list, label = "Blocked Solution Cost")
+    plt.plot(random_cost_list, label = "Random Solutions Costs")
+    plt.legend()
+    plt.show()
+
+
+
 #--------------------------------------------------------------------------------------------------------------------------------------------
 
 def print_task1(filename = "p2.txt", iterations = 100_000):
@@ -584,8 +617,19 @@ def print_task2(filename = "p2.txt", iterations = 1_000, searchFunction = hillCl
 
 def print_task3(filename = "p3.txt", iterations = 100):
     """
-    
+    This is a function with all our print statements for completing task 3 in.
     """
+    givenAppliance, givenTimings = open_file(filename)
+    givenSolution = Solution(givenAppliance, givenTimings, shuffle = False)
+
+    graph_blocked_solutions_against_random(givenSolution)   #this plots our blocked initial solution against a random generation of solutions.
+
+    givenSolution.getShuffledOnOff()
+
+    graphTwoSoultionFinders(givenSolution, 100, simulatedAnnealingSearch, testForImprovements3Iterations)   #graphs a comparison between simulated annealing and the testForImprovements3 solution finders
+    graphTwoSoultionFinders(givenSolution, 100, simulatedAnnealingSearch, hillClimbSearch)  #graphs a comparison between simulated annealing and hill climb search
+
+
 #--------------------------------------------------------------------------------------------------------------------------------------------
 
 def run_final_inputs():
@@ -599,20 +643,18 @@ def run_final_inputs():
         chosen_iterations = int(input("Choose a number of iterations to run this to, recommended is 100,000 >>> "))
     if chosen_task  == 2:
         chosen_search_function = int(input("Choose a function to compare against random selection, type 1 for testForImprovements3, 2 for hillClimbSearch, 3 for simulatedAnnealingSearch >>> "))
-
         if chosen_search_function == 3 or chosen_search_function == 1:
             chosen_iterations = int(input("Choose a number of iterations to run this to, recommended is 100 >>> "))
         else:
             chosen_iterations = int(input("Choose a number of iterations to run this to, recommended is 1,000 >>> "))
+        if chosen_search_function == 1:
+            chosen_search_function = testForImprovements3Iterations
+        if chosen_search_function == 2:
+            chosen_search_function = hillClimbSearch
+        if chosen_search_function == 3:
+            chosen_search_function = simulatedAnnealingSearch
     if chosen_task == 3:
-        pass
-
-    if chosen_search_function == 1:
-        chosen_search_function = testForImprovements3Iterations
-    if chosen_search_function == 2:
-        chosen_search_function = hillClimbSearch
-    if chosen_search_function == 3:
-        chosen_search_function = simulatedAnnealingSearch
+        chosen_iterations = int(input("Choose a number of iterations to run this to, recommended is 100 >>> "))
 
     if chosen_file == 1:
         chosen_file = "p1.txt"
@@ -625,5 +667,8 @@ def run_final_inputs():
         print_task1(filename = chosen_file, iterations = chosen_iterations)
     if chosen_task == 2:
         print_task2(filename = chosen_file, iterations = chosen_iterations, searchFunction = chosen_search_function)
+    if chosen_task == 3:
+        print_task3(filename = chosen_file, iterations = chosen_iterations)
 
 run_final_inputs()
+
