@@ -313,7 +313,6 @@ def testForImprovements1Iterations(solution, iterations):
     A function to run test for improvements 1 to a specified number of iterations.
     """
     list_of_costs = [solution.cost]
-    start_time = time.time()
     current_solution = copy.deepcopy(solution)
     for i in range(iterations):
         best_solution = testForImprovements1(current_solution)
@@ -322,8 +321,6 @@ def testForImprovements1Iterations(solution, iterations):
             current_solution = best_solution
         else:
             list_of_costs.append(min(list_of_costs))
-    end_time = time.time()
-    print(f"testFOrImprovements1 took {end_time - start_time} seconds to run {iterations} iterations and gave a best solution {current_solution}")
     return current_solution, list_of_costs
 
 def testForImprovements3Iterations(solution, iterations):
@@ -331,7 +328,6 @@ def testForImprovements3Iterations(solution, iterations):
     A function to run test for improvements 3 to a specified number of iterations.
     """
     list_of_costs = [solution.cost]
-    start_time = time.time()
     current_solution = copy.deepcopy(solution)
     for i in range(iterations):
         best_solution = testForImprovements3(current_solution)
@@ -340,8 +336,6 @@ def testForImprovements3Iterations(solution, iterations):
             current_solution = best_solution
         else:
             list_of_costs.append(min(list_of_costs))
-    end_time = time.time()
-    print(f"testFOrImprovements3 took {end_time - start_time} seconds to run {iterations} iterations and gave a best solution {current_solution}")
     return current_solution, list_of_costs
 
 def findNeighbour(solution):
@@ -362,7 +356,6 @@ def hillClimbSearch(solution, iterations):
     """
     This is an increbilily basic local search algorithm for finding a better solution. It does this by swapping a 1 and 0 then recaluating the cost and excepts it if its better.
     """
-    start_time = time.time()
     currentSolution = copy.deepcopy(solution)
     listOfCosts = [solution.cost]
     for i in range(iterations):
@@ -370,8 +363,6 @@ def hillClimbSearch(solution, iterations):
         if neighbourSoultion.cost <= currentSolution.cost:
             currentSolution = neighbourSoultion
         listOfCosts.append(currentSolution.cost)   
-    end_time = time.time()
-    print(f"hillClimbSearch took {end_time - start_time} seconds to run {iterations} iterations and gave a best solution of {currentSolution}") 
     return currentSolution, listOfCosts
 
 
@@ -387,19 +378,16 @@ def simulatedAnnealingSearch(solution, iterations):
     bestSolution = solution
     currentSolution = solution
     listOfCosts = [solution.cost]
-    start_time = time.time()
     while temperature > minTemperature:
         for i in range(iterations):
             if currentSolution.cost < bestSolution.cost:
                 bestSolution = currentSolution
             newSolution = findNeighbour(currentSolution)
-            acceptanceProbability = math.exp((currentSolution.cost - newSolution.cost) / temperature) #Calcuating the new acceptance probability for the new solution
+            acceptanceProbability = math.exp((currentSolution.cost - newSolution.cost)) / 10 * temperature #Calcuating the new acceptance probability for the new solution
             if acceptanceProbability > random.uniform(0,1):
                 currentSolution = newSolution
         temperature *= alpha
         listOfCosts.append(currentSolution.cost)
-    end_time = time.time()
-    print(f"simulatedAnnealingSearch took {end_time - start_time} seconds to run {iterations} iterations and gave a best solution of {bestSolution}")
     return bestSolution, listOfCosts
 
 def findBestSolution(solutions):
@@ -486,7 +474,7 @@ def graph_iterations_against_random_selection(solution, iterations = 1000):
     plt.plot(list_of_cheapest_costs)
     plt.show()
 
-def graph_iterations_of_small_improvements_and_random_selection(solution, iterations, searchFunction):
+def graph_iterations_of_search_function_and_random_selection(solution, iterations, searchFunction):
     """
     This combines the 2 functions which plot their graphs of cost improvements against iteration to show a more direct comparison.
     """
@@ -545,8 +533,6 @@ def compareTimeEfficency(solution, searchFunction1):
         searchFunction1timings.append(endTime1 - startTime1)
         
         iterationsNum += 1 #Increasing the number of iterations tenfold
-    
-    
     plt.subplots(figsize = (10, 7))
     plt.xlabel("Number of iterations")
     plt.ylabel("Time Taken to complete function")
@@ -577,6 +563,7 @@ def graph_blocked_solutions_against_random(solution):
         if iterations >= 10000:
             break
     blocked_list = [blocked_cost for i in range(iterations)]
+
     plt.subplots(figsize = (10, 7))
     plt.title("Comparing blocked solution costs against randomly generated solution costs")
     plt.xlabel("Iterations until Random is better than blocked")
@@ -608,12 +595,13 @@ def print_task2(filename = "p2.txt", iterations = 1_000, searchFunction = hillCl
     """
     givenAppliance, givenTimings = open_file(filename)
     givenSolution = Solution(givenAppliance, givenTimings, shuffle = True)
-    basic_search_solution, list_of_costs = searchFunction(givenSolution, iterations)
+    start_time = time.time()
+    searchFunctionSolution, list_of_costs = searchFunction(givenSolution, iterations)
+    end_time = time.time()
     listOfCosts, best_solution_task1 = task1(givenAppliance, givenTimings, iterations)
-    
-    graph_2_different_solutions(best_solution_task1, basic_search_solution)     #this plots a graph with the best solution found from randomly generating solutions on the left and using the basic search algorithm on the right.
-    
-    graph_iterations_of_small_improvements_and_random_selection(givenSolution, iterations, searchFunction)
+    print(f"{searchFunction.__name__} took {end_time - start_time} seconds to run {iterations} iterations and gave a best solution {searchFunctionSolution}")
+    graph_2_different_solutions(best_solution_task1, searchFunctionSolution)     #this plots a graph with the best solution found from randomly generating solutions on the left and using given searchFunction on the right.
+    graph_iterations_of_search_function_and_random_selection(givenSolution, iterations, searchFunction)
 
 def print_task3(filename = "p3.txt", iterations = 100):
     """
@@ -671,4 +659,3 @@ def run_final_inputs():
         print_task3(filename = chosen_file, iterations = chosen_iterations)
 
 run_final_inputs()
-
