@@ -383,7 +383,7 @@ def simulatedAnnealingSearch(solution, iterations):
             if currentSolution.cost < bestSolution.cost:
                 bestSolution = currentSolution
             newSolution = findNeighbour(currentSolution)
-            acceptanceProbability = math.exp((currentSolution.cost - newSolution.cost)) / 10 * temperature #Calcuating the new acceptance probability for the new solution
+            acceptanceProbability = math.exp(((currentSolution.cost/100) - (newSolution.cos/t/100))) / temperature #Calcuating the new acceptance probability for the new solution
             if acceptanceProbability > random.uniform(0,1):
                 currentSolution = newSolution
         temperature *= alpha
